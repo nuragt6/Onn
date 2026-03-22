@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vartalap — Meet Strangers Instantly</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root { --c: #0a0b12; --s: #11121f; --s2: #191a2e; --acc: #00f5c4; --acc2: #ff3d7f; --acc3: #7c5cfc; --acc4: #ffd166; --t: #eef0ff; --m: #6b6f8e; --border: rgba(255,255,255,0.07); --ff: 'Syne', sans-serif; --fb: 'Instrument Sans', sans-serif; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body { background: var(--c); color: var(--t); font-family: var(--fb); overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.5; }
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; transition: all 0.3s; }
+nav.scrolled { background: rgba(10,11,18,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+.nav-logo { font-family: var(--ff); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; color: var(--t); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.nav-logo .dot { width: 8px; height: 8px; background: var(--acc); border-radius: 50%; box-shadow: 0 0 12px var(--acc); animation: blink 2s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.nav-cta { background: var(--acc); color: var(--c); padding: 10px 20px; border-radius: 100px; font-weight: 600; text-decoration: none; font-size: 0.9rem; }
+.hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 100px 20px 60px; text-align: center; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+.orb-1 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,245,196,0.15), transparent 70%); top: -50px; left: -50px; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,245,196,0.07); border: 1px solid rgba(0,245,196,0.2); border-radius: 100px; padding: 8px 16px; font-size: 0.75rem; color: var(--acc); text-transform: uppercase; font-weight: 600; margin-bottom: 24px; }
+.hero-badge .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--acc); animation: blink 1.5s infinite; }
+.hero-title { font-family: var(--ff); font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; line-height: 1; letter-spacing: -1px; margin-bottom: 20px; }
+.hero-title .line-accent { background: linear-gradient(90deg, var(--acc), var(--acc3), var(--acc2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-sub { font-size: 1rem; color: var(--m); max-width: 400px; margin: 0 auto 32px; line-height: 1.6; }
+.btn-primary { display: block; width: 100%; max-width: 300px; margin: 0 auto 12px; background: var(--acc); color: var(--c); font-family: var(--ff); font-weight: 700; font-size: 1rem; padding: 16px; border-radius: 100px; text-decoration: none; box-shadow: 0 0 30px rgba(0,245,196,0.25); }
+.btn-secondary { display: block; width: 100%; max-width: 300px; margin: 0 auto; background: transparent; color: var(--t); font-family: var(--ff); font-weight: 600; font-size: 0.95rem; padding: 15px; border-radius: 100px; text-decoration: none; border: 1px solid var(--border); }
+.live-counter { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.15); border-radius: 100px; padding: 8px 16px; font-size: 0.8rem; color: #00ff88; margin-top: 40px; }
+.live-dot-green { width: 6px; height: 6px; border-radius: 50%; background: #00ff88; animation: blink 1.5s infinite; }
+.section { padding: 60px 20px; }
+.section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--acc); margin-bottom: 12px; font-family: var(--ff); }
+.section-title { font-family: var(--ff); font-size: 2rem; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+.feat-card { background: var(--s); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+.feat-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--s2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 16px; }
+.feat-title { font-family: var(--ff); font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+.feat-desc { color: var(--m); font-size: 0.85rem; line-height: 1.5; }
+footer { padding: 30px 20px; border-top: 1px solid var(--border); text-align: center; }
+.footer-logo { font-family: var(--ff); font-weight: 800; font-size: 1.2rem; color: var(--t); margin-bottom: 16px; }
+.footer-copy { font-size: 0.75rem; color: var(--m); }
+</style>
+</head>
+<body>
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Vartalap<span class="dot"></span></a>
+  <a href="meet.html" class="nav-cta">Start →</a>
+</nav>
+
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><div class="live-dot"></div>Live Video Chat</div>
+    <h1 class="hero-title">Meet Anyone,<br><span class="line-accent">Anywhere, Now.</span></h1>
+    <p class="hero-sub">Instant video calls with real strangers. No accounts, no algorithms.</p>
+    <a href="meet.html" class="btn-primary">⚡ Start Meeting Free</a>
+    <a href="#features" class="btn-secondary">▷ See features</a>
+    <br>
+    <div class="live-counter"><div class="live-dot-green"></div><strong id="live-num">1,847</strong> online</div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="section-label">Why Vartalap</div>
+  <h2 class="section-title">Built for real<br>connection.</h2>
+  <div class="features-grid">
+    <div class="feat-card"><div class="feat-icon">⚡</div><div class="feat-title">Instant Matching</div><div class="feat-desc">Connect with someone new in under 2 seconds via WebRTC.</div></div>
+    <div class="feat-card"><div class="feat-icon">💬</div><div class="feat-title">Live Text Chat</div><div class="feat-desc">Send messages alongside your video.</div></div>
+    <div class="feat-card"><div class="feat-icon">🛡️</div><div class="feat-title">Safe & Moderated</div><div class="feat-desc">Report system automatically bans disruptive users.</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Vartalap<span style="color:var(--acc)">.</span></div>
+  <div class="footer-copy">© 2026 Vartalap. All rights reserved.</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => { document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20); });
+setInterval(() => {
+  let el = document.getElementById('live-num');
+  let num = parseInt(el.textContent.replace(',','')) + Math.floor(Math.random()*11)-5;
+  el.textContent = Math.max(1200, num).toLocaleString();
+}, 4000);
+</script>
+</body>
+</html>
