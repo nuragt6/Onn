@@ -1,12 +1,22 @@
 {
-  "name": "my-node-app",
+  "name": "vartalap",
   "version": "1.0.0",
+  "description": "Vartalap WebRTC and Socket.io Video Chat Server",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
+  "keywords": [
+    "webrtc",
+    "socket.io",
+    "video-chat",
+    "express"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.21.0",
+    "socket.io": "^4.8.0"
   }
 }
-
