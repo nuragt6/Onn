@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vartalap Admin | Master Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  :root {
+    --bg: #08090f; --surf: #0f1020; --surf2: #161829; --border: rgba(255,255,255,0.08);
+    --acc: #00f0c0; --acc2: #ff3d7f; --acc3: #7c5cfc; --text: #eceeff; --muted: #626880;
+    --ff: 'Syne', sans-serif; --fb: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--fb); padding: 20px; }
+  
+  /* Login Screen */
+  #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 85vh; }
+  .logo { font-family: var(--ff); font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; }
+  .logo span { background: linear-gradient(90deg, var(--acc), var(--acc3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .admin-input { padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--surf2); color: white; outline: none; margin-bottom: 15px; width: 300px; font-family: var(--fb); font-size: 1rem; }
+  .admin-input:focus { border-color: var(--acc); }
+  .admin-btn { padding: 15px; width: 300px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--acc), var(--acc3)); color: #08090f; font-family: var(--ff); font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+  .admin-btn:active { transform: scale(0.96); }
+
+  /* Dashboard */
+  #dashboard { display: none; max-width: 1200px; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .header-title { font-family: var(--ff); font-size: 1.5rem; color: var(--acc); }
+  
+  .panel { background: var(--surf); padding: 20px; border-radius: 16px; border: 1px solid var(--border); height: 75vh; display: flex; flex-direction: column; }
+  .panel h2 { font-family: var(--ff); font-size: 1.1rem; color: #ffd166; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+  
+  .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; }
+  .scroll-area::-webkit-scrollbar { width: 6px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: var(--surf2); border-radius: 10px; }
+
+  /* User Cards */
+  .user-card { background: var(--surf2); padding: 12px 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .u-info strong { display: block; font-size: 0.95rem; margin-bottom: 4px; }
+  .u-info small { color: var(--muted); font-size: 0.75rem; }
+  .action-btn { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-family: var(--ff); font-weight: 700; cursor: pointer; border: none; }
+  .btn-kick { background: rgba(124,92,252,0.15); color: var(--acc3); border: 1px solid rgba(124,92,252,0.3); margin-right: 5px; }
+  .btn-ban { background: rgba(255,61,127,0.15); color: var(--acc2); border: 1px solid rgba(255,61,127,0.3); }
+
+  /* Chat Spy */
+  .chat-spy-msg { background: var(--surf2); padding: 10px 12px; margin-bottom: 8px; border-radius: 8px; font-size: 0.85rem; border-left: 3px solid var(--acc); line-height: 1.4; }
+  .chat-room { font-size: 0.65rem; color: var(--acc3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; display: block; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="logo">Vartalap <span>Admin</span></div>
+  <input type="password" id="admin-pass" class="admin-input" placeholder="Enter Master Password">
+  <button class="admin-btn" onclick="login()">Access Control</button>
+</div>
+
+<div id="dashboard">
+  <div class="header">
+    <div class="header-title">Master Control Panel</div>
+    <div style="font-size: 0.85rem; color: var(--muted);">Status: <span style="color: var(--green);">Live</span></div>
+  </div>
+
+  <div class="panel">
+    <h2><span>👥 Active Users</span> <span id="user-count" style="color:var(--text); background:var(--surf2); padding:2px 10px; border-radius:10px; font-size:0.9rem;">0</span></h2>
+    <div class="scroll-area" id="users-list">
+      <div style="color: var(--muted); font-size: 0.85rem; text-align: center; margin-top: 20px;">Awaiting server connection...</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span>👁️ Live Chat Intercept</span></h2>
+    <div class="scroll-area" id="chat-feed">
+      <div style="color: var(--muted); font-size: 0.85rem; text-align: center; margin-top: 20px;">Listening for messages...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const socket = io();
+let isAdmin = false;
+
+function login() {
+  const pass = document.getElementById('admin-pass').value;
+  // Emit auth to server (Requires backend setup to work)
+  socket.emit('admin_auth', pass);
+  
+  // For UI testing purposes without backend:
+  // document.getElementById('login-screen').style.display = 'none';
+  // document.getElementById('dashboard').style.display = 'grid';
+}
+
+socket.on('admin_auth_success', () => {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'grid';
+  isAdmin = true;
+});
+
+socket.on('admin_auth_fail', () => { 
+  alert('Access Denied: Wrong Password!'); 
+});
+
+// Update Users List
+socket.on('admin_users_update', (users) => {
+  document.getElementById('user-count').textContent = users.length;
+  const list = document.getElementById('users-list');
+  if(users.length === 0) {
+    list.innerHTML = '<div style="color: var(--muted); text-align: center; margin-top: 20px;">No users online</div>';
+    return;
+  }
+  list.innerHTML = users.map(u => `
+    <div class="user-card">
+      <div class="u-info">
+        <strong>${u.name}</strong>
+        <small>IP: ${u.ip} | Room: ${u.room || 'Waiting'}</small>
+      </div>
+      <div>
+        <button class="action-btn btn-kick" onclick="kickUser('${u.id}')">Kick</button>
+        <button class="action-btn btn-ban" onclick="banUser('${u.ip}')">Ban IP</button>
+      </div>
+    </div>
+  `).join('');
+});
+
+// Intercept Live Chats
+socket.on('admin_chat_spy', (data) => {
+  const feed = document.getElementById('chat-feed');
+  // Remove placeholder if it exists
+  if(feed.innerHTML.includes('Listening for messages')) feed.innerHTML = '';
+  
+  feed.innerHTML += `
+    <div class="chat-spy-msg">
+      <span class="chat-room">${data.room}</span>
+      <b>${data.from}:</b> ${data.msg}
+    </div>
+  `;
+  feed.scrollTop = feed.scrollHeight;
+});
+
+// Admin Actions
+function kickUser(socketId) { 
+  if(confirm('Are you sure you want to kick this user?')) socket.emit('admin_kick', socketId); 
+}
+function banUser(ip) { 
+  if(confirm('Permanently ban this IP address?')) socket.emit('admin_ban', ip); 
+}
+</script>
+</body>
+</html>
+
