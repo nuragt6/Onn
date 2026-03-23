@@ -1,21 +1,16 @@
 {
   "name": "vartalap",
   "version": "1.0.0",
-  "description": "Vartalap WebRTC and Socket.io Video Chat Server",
+  "description": "Vartalap WebRTC Video Chat with Admin System",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [
-    "webrtc",
-    "socket.io",
-    "video-chat",
-    "express"
-  ],
-  "author": "Your Name",
+  "author": "Anurag",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "socket.io": "^4.8.0"
   }
